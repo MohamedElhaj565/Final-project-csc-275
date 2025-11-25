@@ -1,0 +1,13 @@
+//
+// Created by USER on 11/25/2025.
+//
+
+#ifndef FINAL_PROJECT_CSC_275_CUSTOMER_H
+#define FINAL_PROJECT_CSC_275_CUSTOMER_H
+
+
+class Customer {
+};
+
+
+#endif //FINAL_PROJECT_CSC_275_CUSTOMER_H
