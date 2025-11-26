@@ -7,7 +7,7 @@ int main() {
 
     return 0;
 }
-    /*//our tests
+    /*Code testing
     //Vehicle* v;
     Car c("ABC123", "Toyota", "Camry", 2021, 40.0, 5, "Gas", true);
 

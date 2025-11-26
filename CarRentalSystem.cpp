@@ -149,7 +149,7 @@ void CarRentalSystem::listRentals() const {
 
     std::cout << "=== Rentals ===\n";
     for (const auto& r : rentals) {
-        std::cout << r << "\n";
+        std::cout << r << "\n";   // uses operator<<
     }
 }
 
@@ -189,8 +189,16 @@ void CarRentalSystem::createRental() {
     std::cout << "Enter end day (int): ";
     std::cin >> endDay;
 
+    // create the rental
     rentals.emplace_back(nextRentalId, c, v, startDay, endDay);
+
+    // get reference to the new rental
+    Rental& newRental = rentals.back();
+
     std::cout << "Rental created with ID: " << nextRentalId << "\n";
+    std::cout << "Total price for this rental: $"
+              << newRental.getTotalPrice() << "\n";
+
     ++nextRentalId;
 }
 

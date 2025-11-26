@@ -40,7 +40,7 @@ bool Rental::isActive() const {
 
 //compute total price using polymrphism
 void Rental::computeTotalPrice() {
-    if (vehicle != nullptr) {
+    if (vehicle == nullptr) {
         totalPrice= 0.0;
         return;
     }
