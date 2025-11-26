@@ -1,43 +1,13 @@
 #include <iostream>
-#include "Vehicle.h"
-#include "Car.h"
-#include "Rental.h"
-#include "Customer.h"
 #include "CarRentalSystem.h"
 
-int main () {
-
-
+int main() {
     CarRentalSystem system;
     system.run();
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
     return 0;
-    //our tests
+}
+    /*//our tests
     //Vehicle* v;
     Car c("ABC123", "Toyota", "Camry", 2021, 40.0, 5, "Gas", true);
 
@@ -67,4 +37,7 @@ int main () {
 
     if (c1 == c2)
         std::cout << "Same customer ID!\n";
-}
+
+    CarRentalSystem system;
+    system.run();*/
+
