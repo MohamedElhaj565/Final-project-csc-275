@@ -5,3 +5,4 @@ This Car Rental System is designed using full Object-Oriented Programming princi
 When the system creates a rental, it uses polymorphism — meaning it treats all cars as Vehicle* pointers but still calls the correct overridden functions like calculatePrice() and displayInfo(). The CarRentalSystem class acts as the “manager” and handles the whole workflow: adding vehicles, registering customers, creating rentals, and listing active bookings.
 
 Overall, the project shows how inheritance, encapsulation, pure virtual functions, operator overloading, and vectors all work together to form a clean and scalable OOP application.
+Also i wnated to mention that you can test your class under the our tests comment in the main cpp. and i tried to put comments so you can understand what i did.
