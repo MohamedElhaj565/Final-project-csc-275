@@ -1,5 +1,23 @@
 #include "CarRentalSystem.h"
 #include <iostream>
+#include <map>
+#include <vector>
+#include <algorithm>
+#include <limits>
+#include <sstream>
+#include <Rental.h>
+// Allowed makes and models
+std::map<std::string, std::vector<std::string>> allowedModels = {
+    {"Ford",   {"F150", "F250", "Fusion", "Focus", "Escape", "Explorer", "Mustang"}},
+    {"Honda",  {"Civic", "Accord", "CRV", "Pilot", "Fit"}},
+    {"Toyota", {"Camry", "Corolla", "RAV4", "Highlander", "Tacoma"}},
+    {"Chevy",  {"Malibu", "Impala", "Cruze", "Silverado", "Tahoe"}},
+    {"Tesla",  {"Model3", "ModelS", "ModelX", "ModelY"}},
+    {"Nissan", {"Altima", "Maxima", "Sentra", "Rogue", "Pathfinder"}},
+    {"Kia",    {"Optima", "Sorento", "Sportage", "Soul", "Forte"}},
+    {"Audi",   {"A4", "A6", "Q5", "Q7", "A3"}},
+    {"BMW",    {"320i", "330i", "X3", "X5", "M3"}}
+};
 
 // --------- Constructor & Destructor ---------
 
@@ -15,14 +33,15 @@ CarRentalSystem::~CarRentalSystem() {
 
 // --------- Helper Find Functions ---------
 
-Customer* CarRentalSystem::findCustomerById(int id) {
+Customer* CarRentalSystem::findCustomerById(const std::string& license) {
     for (auto& c : customers) {
-        if (c.getCustomerId() == id) {
+        if (c.getDriverLicense() == license) {
             return &c;
         }
     }
     return nullptr;
 }
+
 
 Vehicle* CarRentalSystem::findVehicleByPlate(const std::string& plate) {
     for (Vehicle* v : vehicles) {
@@ -43,65 +62,238 @@ Rental* CarRentalSystem::findRentalById(int rentalId) {
 }
 
 // --------- Sample Data (Optional) ---------
-
 void CarRentalSystem::addSampleData() {
-    // sample customers
-    customers.emplace_back(1, "Mohamed", "DL12345", "810-555-1111");
-    customers.emplace_back(2, "Ali", "DL67890", "810-555-2222");
 
-    // sample vehicles (Car)
+    // --- Customers (Name, License, Phone) ---
+    customers.emplace_back("A123456789012", "Mohamed Ali", "8105551111");
+    customers.emplace_back("H987654321098", "Ali Hassan", "8105552222");
+    customers.emplace_back("M102938475610", "Sarah Miller", "8105553333");
+    customers.emplace_back("D564738291045", "Jake Dunda", "8105554444");
+
+    // --- Vehicles ---
     vehicles.push_back(new Car("ABC123", "Toyota", "Camry", 2021, 40.0, 5, "Gas", true));
     vehicles.push_back(new Car("XYZ789", "Tesla", "Model3", 2023, 80.0, 5, "Electric", true));
+
+    vehicles.push_back(new Car("CHE1234", "Chevy", "Malibu", 2018, 40.0, 5, "Gas", true));
+    vehicles.push_back(new Car("FOR5678", "Ford", "F150", 2020, 55.0, 2, "Gas", false));
+    vehicles.push_back(new Car("CHE9999", "Chevy", "Impala", 2017, 42.0, 5, "Gas", false));
 
     std::cout << "Sample data added.\n";
 }
 
+
+
 // --------- Add Customer / Car ---------
 
 void CarRentalSystem::addCustomer() {
-    int id;
     std::string name, license, phone;
 
-    std::cout << "Enter customer ID: ";
-    std::cin >> id;
-    std::cin.ignore(10000, '\n'); // clear rest of line
+    // ---- NAME VALIDATION ----
+    while (true) {
+        std::cin.clear();
+        std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
 
-    std::cout << "Enter customer name: ";
-    std::getline(std::cin, name);
+        std::cout << "Enter customer first and last name: ";
+        std::getline(std::cin, name);
 
-    std::cout << "Enter driver license: ";
-    std::getline(std::cin, license);
+        // Must contain exactly two words
+        std::stringstream ss(name);
+        std::string first, last;
+        ss >> first >> last;
 
-    std::cout << "Enter phone number: ";
-    std::getline(std::cin, phone);
+        if (first.empty() || last.empty()) {
+            std::cout << "Name must include FIRST and LAST name.\n";
+            continue;
+        }
 
-    customers.emplace_back(id, name, license, phone);
+        // Check letters only
+        if (!std::all_of(first.begin(), first.end(), ::isalpha) ||
+            !std::all_of(last.begin(), last.end(), ::isalpha)) {
+            std::cout << "Name must contain LETTERS only.\n";
+            continue;
+        }
+
+        // Passed validation
+        break;
+    }
+
+    // ---- DRIVER LICENSE VALIDATION ----
+    while (true) {
+        std::cout << "Enter driver license (first letter of LAST name + 12 digits): ";
+        std::cin >> license;
+
+        if (license.length() != 13) {
+            std::cout << "License must be 13 characters and begin with first letter of last name.\n";
+            continue;
+        }
+
+        char lastInitial = toupper(license[0]);
+        char requiredInitial = toupper(name.substr(name.find_last_of(' ') + 1)[0]);
+
+        if (lastInitial != requiredInitial) {
+            std::cout << "License must start with FIRST LETTER of LAST NAME ("
+                      << requiredInitial << ").\n";
+            continue;
+        }
+
+        bool digitsValid = true;
+        for (int i = 1; i < 13; i++) {
+            if (!isdigit(license[i])) digitsValid = false;
+        }
+
+        if (!digitsValid) {
+            std::cout << "After the first letter, license must contain ONLY digits.\n";
+            continue;
+        }
+
+        break;
+    }
+
+    // ---- PHONE NUMBER VALIDATION ----
+    while (true) {
+        std::cout << "Enter phone number (10 digits): ";
+        std::cin >> phone;
+
+        if (phone.length() != 10) {
+            std::cout << "Phone number must be EXACTLY 10 digits.\n";
+            continue;
+        }
+
+       if (!std::all_of(phone.begin(), phone.end(), ::isdigit)){
+            std::cout << "Phone number must contain ONLY digits.\n";
+            continue;
+        }
+
+        break;
+    }
+
+    customers.emplace_back(license, name, phone);
     std::cout << "Customer added successfully.\n";
 }
-
 void CarRentalSystem::addCar() {
-    std::string plate, make, model, fuelType;
+    std::string plate, make, model, fuelType, bodyStyle;
     int year, seats;
     double dailyRate;
     char autoChoice;
 
-    std::cout << "Enter plate number: ";
-    std::cin >> plate;
+    // Plate validation
+    // Clear leftover input
+    std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
 
-    std::cout << "Enter make: ";
-    std::cin >> make;
+    while (true) {
+        std::cout << "Enter plate number (3-7 characters): ";
+        std::getline(std::cin, plate);
 
-    std::cout << "Enter model: ";
-    std::cin >> model;
+        // Remove spaces so "ejz 6238" → "ejz6238"
+        plate.erase(remove(plate.begin(), plate.end(), ' '), plate.end());
 
-    std::cout << "Enter year: ";
-    std::cin >> year;
+        if (plate.length() >= 3 && plate.length() <= 7)
+            break;
 
-    std::cout << "Enter base daily rate: ";
-    std::cin >> dailyRate;
+        std::cout << "Invalid plate. Try again.\n";
+    }
 
-    std::cout << "Enter number of seats: ";
-    std::cin >> seats;
+
+    // Make validation (case insensitive)
+    while (true) {
+        std::cout << "Enter make (Ford/Honda/Toyota/Chevy/Tesla/Nissan/Kia/Audi/BMW): ";
+        std::cin >> make;
+
+        // Convert input to proper format (capitalize first letter)
+        make[0] = toupper(make[0]);
+        for (int i = 1; i < make.size(); i++)
+            make[i] = tolower(make[i]);
+
+        if (allowedModels.count(make) > 0)
+            break;
+
+        std::cout << "Invalid make. Try again.\n";
+    }
+
+    // Model validation (case insensitive)
+    while (true) {
+        std::cout << "Available " << make << " models: ";
+        for (auto &m : allowedModels[make]) std::cout << m << " ";
+        std::cout << "\nEnter model: ";
+        std::cin >> model;
+
+        // Normalize model for comparison
+        std::string userModelLower = model;
+        std::transform(userModelLower.begin(), userModelLower.end(), userModelLower.begin(), ::tolower);
+
+        bool valid = false;
+
+        for (auto &m : allowedModels[make]) {
+            std::string sysModelLower = m;
+            std::transform(sysModelLower.begin(), sysModelLower.end(), sysModelLower.begin(), ::tolower);
+
+            if (sysModelLower == userModelLower) {
+                model = m;  // store official capitalized model
+                valid = true;
+                break;
+            }
+        }
+
+        if (valid) break;
+
+        std::cout << "Invalid model for " << make << ". Try again.\n";
+    }
+
+    // Year validation (max 25 years old)
+    int currentYear = 2024;
+    while (true) {
+        std::cout << "Enter year: ";
+        std::cin >> year;
+
+        if (currentYear - year <= 25 && year >= 1999)
+            break;
+
+        std::cout << "Invalid year. Car must be within 25 years.\n";
+    }
+
+    // Daily rate validation (40–80)
+    while (true) {
+        std::cout << "Enter base daily rate (40-80): ";
+        std::cin >> dailyRate;
+
+        if (dailyRate >= 40 && dailyRate <= 80)
+            break;
+
+        std::cout << "Invalid rate. Must be between $40 and $80.\n";
+    }
+
+    // Body style selection
+    while (true) {
+        std::cout << "Enter body style (coupe/sedan/truck/suv/van): ";
+        std::cin >> bodyStyle;
+
+        std::string b = bodyStyle;
+        std::transform(b.begin(), b.end(), b.begin(), ::tolower);
+
+        if (b == "coupe" || b == "sedan" || b == "truck" || b == "suv" || b == "van") {
+            bodyStyle = b;
+            break;
+        }
+        std::cout << "Invalid body style.\n";
+    }
+
+    // Seat validation based on body style
+    while (true) {
+        std::cout << "Enter number of seats: ";
+        std::cin >> seats;
+
+        bool ok = false;
+
+        if (bodyStyle == "coupe" && seats == 2) ok = true;
+        if (bodyStyle == "sedan" && seats == 5) ok = true;
+        if (bodyStyle == "truck" && (seats == 2 || seats == 5)) ok = true;
+        if (bodyStyle == "suv" && seats == 5) ok = true;
+        if (bodyStyle == "van" && (seats >= 5 && seats <= 8)) ok = true;
+
+        if (ok) break;
+
+        std::cout << "Invalid seat count for " << bodyStyle << ". Try again.\n";
+    }
 
     std::cout << "Enter fuel type (Gas/Hybrid/Electric): ";
     std::cin >> fuelType;
@@ -152,47 +344,118 @@ void CarRentalSystem::listRentals() const {
         std::cout << r << "\n";
     }
 }
+// Data Parsing makes input for data 03/15/2024
+bool parseDate(const std::string& input, Date& date) {
+    if (input.length() != 10 || input[2] != '/' || input[5] != '/')
+        return false;
+
+    try {
+        date.month = std::stoi(input.substr(0, 2));
+        date.day   = std::stoi(input.substr(3, 2));
+        date.year  = std::stoi(input.substr(6, 4));
+    } catch (...) {
+        return false;
+    }
+
+    if (date.month < 1 || date.month > 12) return false;
+    if (date.day < 1 || date.day > 31) return false;
+    if (date.year < 1900 || date.year > 2100) return false;
+
+    return true;
+}
+// comparsion function make sure end data isn't before start date
+bool isAfterOrSame(const Date& end, const Date& start) {
+    if (end.year != start.year)
+        return end.year > start.year;
+    if (end.month != start.month)
+        return end.month > start.month;
+    return end.day >= start.day;
+}
 
 // --------- Create Rental ---------
 
 void CarRentalSystem::createRental() {
-    int customerId;
+
+    // --- CUSTOMER LOOKUP LOOP ---
+    std::string license;
+    Customer* c = nullptr;
+
+    while (true) {
+        std::cout << "Enter customer driver license: ";
+        std::cin >> license;
+
+        c = findCustomerById(license);
+        if (c) break;
+
+        std::cout << "License does not match system. Try again.\n";
+    }
+
+    // --- VEHICLE LOOKUP LOOP ---
     std::string plate;
-    int startDay, endDay;
+    Vehicle* v = nullptr;
 
-    std::cout << "Enter customer ID: ";
-    std::cin >> customerId;
+    while (true) {
+        std::cout << "Enter vehicle plate number: ";
+        std::cin >> plate;
 
-    Customer* c = findCustomerById(customerId);
-    if (!c) {
-        std::cout << "Customer not found.\n";
-        return;
+        v = findVehicleByPlate(plate);
+        if (!v) {
+            std::cout << "Plate does not match system. Try again.\n";
+            continue;
+        }
+
+        if (!v->isAvailable()) {
+            std::cout << "Vehicle is currently rented. Choose another vehicle.\n";
+            continue;
+        }
+
+        break;
     }
 
-    std::cout << "Enter vehicle plate number: ";
-    std::cin >> plate;
+    // --- DATE INPUT ---
+    Date startDate, endDate;
+    std::string startInput, endInput;
 
-    Vehicle* v = findVehicleByPlate(plate);
-    if (!v) {
-        std::cout << "Vehicle not found.\n";
-        return;
+    // START DATE LOOP
+    while (true) {
+        std::cout << "Enter start date (MM/DD/YYYY): ";
+        std::cin >> startInput;
+
+        if (parseDate(startInput, startDate)) break;
+
+        std::cout << "Invalid date format. Try again.\n";
     }
 
-    if (!v->isAvailable()) {
-        std::cout << "Vehicle is already rented.\n";
-        return;
+    // END DATE LOOP
+    while (true) {
+        std::cout << "Enter end date (MM/DD/YYYY): ";
+        std::cin >> endInput;
+
+        if (!parseDate(endInput, endDate)) {
+            std::cout << "Invalid date format. Try again.\n";
+            continue;
+        }
+
+        if (!isAfterOrSame(endDate, startDate)) {
+            std::cout << "End date cannot be before start date. Try again.\n";
+            continue;
+        }
+
+        break;
     }
 
-    std::cout << "Enter start day (int): ";
-    std::cin >> startDay;
+    // --- CREATE RENTAL ---
+    rentals.emplace_back(nextRentalId, c, v, startDate, endDate);
 
-    std::cout << "Enter end day (int): ";
-    std::cin >> endDay;
-
-    rentals.emplace_back(nextRentalId, c, v, startDay, endDay);
+    Rental& r = rentals.back();
     std::cout << "Rental created with ID: " << nextRentalId << "\n";
+    std::cout << "Total price: $" << r.getTotalPrice() << "\n";
+
     ++nextRentalId;
 }
+
+
+
 
 // --------- Close Rental ---------
 

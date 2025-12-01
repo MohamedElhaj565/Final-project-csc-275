@@ -16,7 +16,7 @@ private:
     int nextRentalId;
 
     // helper methods
-    Customer* findCustomerById(int id);
+    Customer* findCustomerById(const std::string& license);
     Vehicle* findVehicleByPlate(const std::string& plate);
     Rental* findRentalById(int rentalId);
 
