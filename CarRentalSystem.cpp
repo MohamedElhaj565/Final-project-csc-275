@@ -6,6 +6,7 @@
 #include <limits>
 #include <sstream>
 #include <Rental.h>
+
 // Allowed makes and models
 std::map<std::string, std::vector<std::string>> allowedModels = {
     {"Ford",   {"F150", "F250", "Fusion", "Focus", "Escape", "Explorer", "Mustang"}},
@@ -41,7 +42,6 @@ Customer* CarRentalSystem::findCustomerById(const std::string& license) {
     }
     return nullptr;
 }
-
 
 Vehicle* CarRentalSystem::findVehicleByPlate(const std::string& plate) {
     for (Vehicle* v : vehicles) {
@@ -80,8 +80,6 @@ void CarRentalSystem::addSampleData() {
 
     std::cout << "Sample data added.\n";
 }
-
-
 
 // --------- Add Customer / Car ---------
 
@@ -159,7 +157,7 @@ void CarRentalSystem::addCustomer() {
             continue;
         }
 
-       if (!std::all_of(phone.begin(), phone.end(), ::isdigit)){
+        if (!std::all_of(phone.begin(), phone.end(), ::isdigit)) {
             std::cout << "Phone number must contain ONLY digits.\n";
             continue;
         }
@@ -170,6 +168,7 @@ void CarRentalSystem::addCustomer() {
     customers.emplace_back(license, name, phone);
     std::cout << "Customer added successfully.\n";
 }
+
 void CarRentalSystem::addCar() {
     std::string plate, make, model, fuelType, bodyStyle;
     int year, seats;
@@ -192,7 +191,6 @@ void CarRentalSystem::addCar() {
 
         std::cout << "Invalid plate. Try again.\n";
     }
-
 
     // Make validation (case insensitive)
     while (true) {
@@ -344,6 +342,7 @@ void CarRentalSystem::listRentals() const {
         std::cout << r << "\n";
     }
 }
+
 // Data Parsing makes input for data 03/15/2024
 bool parseDate(const std::string& input, Date& date) {
     if (input.length() != 10 || input[2] != '/' || input[5] != '/')
@@ -363,6 +362,7 @@ bool parseDate(const std::string& input, Date& date) {
 
     return true;
 }
+
 // comparsion function make sure end data isn't before start date
 bool isAfterOrSame(const Date& end, const Date& start) {
     if (end.year != start.year)
@@ -372,11 +372,64 @@ bool isAfterOrSame(const Date& end, const Date& start) {
     return end.day >= start.day;
 }
 
+// --------- Fuel-type Info Screen ---------
+
+void CarRentalSystem::showFuelTypeInfo() const {
+    std::cout << "\n================ IMPORTANT RENTAL INFORMATION ================\n";
+    std::cout << "Before choosing a vehicle, please note how fuel type and\n";
+    std::cout << "transmission affect your final rental price:\n\n";
+
+    std::cout << " • Automatic Transmission:\n"
+              << "     + $5.00 PER DAY added to the rental cost.\n\n";
+
+    std::cout << " • Electric Vehicles (EV):\n"
+              << "     + 10% ECO FEE added to the total rental price.\n"
+              << "       (EVs must also be charged at charging stations.)\n\n";
+
+    std::cout << " • Gasoline Vehicles:\n"
+              << "     No extra fees. Customer must refuel before returning.\n\n";
+
+    std::cout << " • Hybrid Vehicles:\n"
+              << "     No extra fees. More fuel-efficient than gas.\n\n";
+
+    std::cout << "You may go back to the main menu if you are not ready to rent.\n";
+    std::cout << "==============================================================\n\n";
+}
+
 // --------- Create Rental ---------
 
 void CarRentalSystem::createRental() {
 
-    // --- CUSTOMER LOOKUP LOOP ---
+    // ---------- STEP 0: Fuel-type explanation + option to exit ----------
+    showFuelTypeInfo();
+
+    int startChoice = -1;
+    while (true) {
+        std::cout << "Press 1 to continue creating a rental.\n";
+        std::cout << "Press 0 to go back to the main menu.\n";
+        std::cout << "Your choice: ";
+        std::cin >> startChoice;
+
+        if (std::cin.fail()) {
+            std::cin.clear();
+            std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+            std::cout << "Invalid input. Please enter 0 or 1.\n";
+            continue;
+        }
+
+        if (startChoice == 0) {
+            std::cout << "Returning to main menu...\n";
+            return; // user decided not to create a rental
+        }
+
+        if (startChoice == 1) {
+            break;  // continue with normal rental flow
+        }
+
+        std::cout << "Please enter 1 to continue or 0 to exit.\n";
+    }
+
+    // ---------- STEP 1: CUSTOMER LOOKUP ----------
     std::string license;
     Customer* c = nullptr;
 
@@ -390,7 +443,7 @@ void CarRentalSystem::createRental() {
         std::cout << "License does not match system. Try again.\n";
     }
 
-    // --- VEHICLE LOOKUP LOOP ---
+    // ---------- STEP 2: VEHICLE LOOKUP ----------
     std::string plate;
     Vehicle* v = nullptr;
 
@@ -412,7 +465,7 @@ void CarRentalSystem::createRental() {
         break;
     }
 
-    // --- DATE INPUT ---
+    // ---------- STEP 3: DATE INPUT ----------
     Date startDate, endDate;
     std::string startInput, endInput;
 
@@ -444,7 +497,7 @@ void CarRentalSystem::createRental() {
         break;
     }
 
-    // --- CREATE RENTAL ---
+    // ---------- STEP 4: CREATE RENTAL ----------
     rentals.emplace_back(nextRentalId, c, v, startDate, endDate);
 
     Rental& r = rentals.back();
@@ -453,9 +506,6 @@ void CarRentalSystem::createRental() {
 
     ++nextRentalId;
 }
-
-
-
 
 // --------- Close Rental ---------
 

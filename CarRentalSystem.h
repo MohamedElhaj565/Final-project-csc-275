@@ -20,12 +20,15 @@ private:
     Vehicle* findVehicleByPlate(const std::string& plate);
     Rental* findRentalById(int rentalId);
 
+    // NEW: Fuel-type information screen
+    void showFuelTypeInfo() const;
+
 public:
     CarRentalSystem();
-    ~CarRentalSystem();   // will delete Vehicle* to avoid memory leaks
+    ~CarRentalSystem();   // deletes Vehicle* to avoid memory leaks
 
-    // interface methods
-    void addSampleData();      // optional: some demo cars & customers
+    // interface functions
+    void addSampleData();
     void addCustomer();
     void addCar();
 
@@ -38,4 +41,4 @@ public:
 
     void run();  // main menu loop
 };
-#endif //FINAL_PROJECT_CSC_275_CARRENTALSYSTEM_H
+#endif // FINAL_PROJECT_CSC_275_CARRENTALSYSTEM_H
